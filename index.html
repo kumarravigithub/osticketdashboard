@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900' rel='stylesheet' type='text/css'>
+
+    <!-- Page title -->
+    <title>cyBuzz Support Dashboard</title>
+
+    <!-- Vendor styles -->
+    <link rel="stylesheet" href="vendor/fontawesome/css/font-awesome.css" />
+    <link rel="stylesheet" href="vendor/animate.css/animate.css" />
+    <link rel="stylesheet" href="vendor/bootstrap/css/bootstrap.css" />
+    <link rel="stylesheet" href="vendor/toastr/toastr.min.css" />
+
+    <!-- App styles -->
+    <link rel="stylesheet" href="styles/pe-icons/pe-icon-7-stroke.css" />
+    <link rel="stylesheet" href="styles/pe-icons/helper.css" />
+    <link rel="stylesheet" href="styles/stroke-icons/style.css" />
+    <link rel="stylesheet" href="styles/style.css?sdsd">
+    <script src="https://code.createjs.com/soundjs-0.6.2.min.js"></script>
+
+    <!-- Vendor scripts -->
+    <script src="vendor/pacejs/pace.min.js"></script>
+    <script src="vendor/jquery/dist/jquery.min.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script src="vendor/toastr/toastr.min.js"></script>
+    <script src="vendor/sparkline/index.js"></script>
+    <script src="vendor/flot/jquery.flot.min.js"></script>
+    <script src="vendor/flot/jquery.flot.resize.min.js"></script>
+    <script src="vendor/flot/jquery.flot.spline.js"></script>
+
+    <!-- App scripts -->
+    <script src="scripts/luna.js"></script>
+
+</head>
+
+<script type="text/javascript">
+    var soundID = "notify";
+    loadSound();
+
+    var memberArray;
+    var clientsArray;
+    var totaltickets;
+    var closedticket;
+    var opentickets;
+    var timeNow;
+
+
+    var startRefresh = function() {
+        var postdata = 'swqdew'; 
+        $.ajax({
+            type: "POST",
+            url: 'services/ajax.php',
+            data: postdata,
+            timeout: 15000,
+            success: function(msg) {
+
+                var isThereAnyChange = false;
+                var json = JSON.parse(msg);
+
+                if (JSON.stringify(memberArray) != JSON.stringify(json.members)) {
+                    isThereAnyChange = true;
+                    playSound();
+                    setTimeout(function() {
+                        $('.staffpanel').animateCss('tada');
+                    }, 2000);
+                }
+
+                if (JSON.stringify(clientsArray) != JSON.stringify(json.clients)) {
+                    isThereAnyChange = true;
+                    playSound();
+                    setTimeout(function() {
+                        $('.clientpanel').animateCss('tada');
+                    }, 2000);
+                }
+
+                if (totaltickets != json.totalTickets) {
+                    isThereAnyChange = true;
+                    playSound();
+                    setTimeout(function() {
+                        $('.staffpanel').animateCss('tada');
+                    }, 2000);
+                }
+
+                if (opentickets != json.openTickets) {
+                    isThereAnyChange = true;
+                    playSound();
+                    setTimeout(function() {
+                        $('.totalopenticketspanel').animateCss('tada');
+                    }, 2000);
+                }
+
+                if (closedtickets != json.closedTickets) {
+                    isThereAnyChange = true;
+                    playSound();
+                    setTimeout(function() {
+                        $('.totalclosedticketspanel').animateCss('tada');
+                    }, 2000);
+                }
+
+                if (isThereAnyChange) {
+                    memberArray = json.members;
+                    clientsArray = json.clients;
+                    totaltickets = json.totalTickets;
+                    opentickets = json.openTickets;
+                    closedtickets = json.closedTickets;
+                    timeNow = json.timeNow;
+
+                    refreshMembers();
+                    refreshClients();
+                    refreshTotalTickets();
+                    refreshOpenTickets();
+                    refreshClosedTicket();
+                    refreshTimeNow();
+                }
+            }
+
+        });
+    };
+    setInterval(startRefresh, 5000);
+
+    function refreshMembers() {
+        $("#member").empty();
+        memberArray.forEach(function(item, index) {
+            if (index === 0) {
+                $("#member").append('<tr id="blinker"><td>' + item.firstname + ' ' + item.lastname + '</td><td><span class="usage1 c-accent">' + item.totaltickets + '</span></td></tr>');
+            } else {
+                $("#member").append('<tr><td>' + item.firstname + ' ' + item.lastname + '</td><td><span class="usage1 c-accent">' + item.totaltickets + '</span></td></tr>');
+            }
+        })
+    }
+
+    function refreshClients() {
+        $("#clientdata").empty();
+        clientsArray.forEach(function(item) {
+            $("#clientdata").append('<tr><td>' + item.name + '</td><td>' + item.totalticket + '</td><td>' + item.totalclosedticket + '</td><td>3</td><td>6</td></tr>');
+        })
+    }
+
+    function refreshTotalTickets() {
+        $("#totaltickets").html(totaltickets)
+    }
+
+    function refreshOpenTickets() {
+        $("#opentickets").html(opentickets)
+    }
+
+    function refreshClosedTicket() {
+        $("#closedtickets").html(closedtickets)
+    }
+
+    function refreshTimeNow() {
+        $(".timeNow").html(timeNow)
+    }
+
+    function loadSound() {
+        createjs.Sound.registerSound("assets/alert.mp3", soundID);
+    }
+
+    function playSound() {
+        createjs.Sound.play(soundID);
+    }
+
+    $.fn.extend({
+        animateCss: function(animationName) {
+            var animationEnd = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
+            this.addClass('animated ' + animationName).one(animationEnd, function() {
+                $(this).removeClass('animated ' + animationName);
+            });
+        }
+    });
+</script>
+</head>
+
+
+<body onload="loadSound()">
+    <!-- Wrapper-->
+    <div class="wrapper">
+
+
+
+        <!-- Main content-->
+        <section class="content" style="margin-top:0px; margin-left:0px;">
+            <div class="container-fluid">
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="view-header">
+                            <div class="pull-right text-right" style="line-height: 14px">
+                                <small>cyBuzz Support<br>Dashboard<br> <span class="c-white">v.1.0</span></small>
+                            </div>
+                            <div class="header-icon">
+                                <i class="pe page-header-icon pe-7s-shield"></i>
+                            </div>
+                            <div class="header-title">
+                                <h3 class="m-b-xs">cyBuzz Support Dashboard</h3>
+                                <small>
+                                    Special minimal admin theme with Dark UI style for monitoring or administration web applications.
+                                </small>
+                            </div>
+                        </div>
+                        <hr>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-8 col-xs-12">
+                        <div class="row">
+
+                            <div class="col-lg-3 col-xs-6 totalticketspanel">
+                                <div class="panel panel-filled">
+
+                                    <div class="panel-body">
+                                        <h2 class="m-b-none">
+                        <span id="totaltickets"></span> <span class="slight"><i class="fa fa-play fa-rotate-270 text-warning"> </i> +20%</span>
+                    </h2>
+                                        <div class="small">Total Tickets</div>
+                                        <div class="slight m-t-sm"><i class="fa fa-clock-o"> </i> Updated : <span class="c-white timeNow"></span> </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-xs-6 totalopenticketspanel">
+                                <div class="panel panel-filled">
+                                    <div class="panel-body">
+                                        <h2 class="m-b-none">
+                        <span id="opentickets"></span> <span class="slight"><i class="fa fa-play fa-rotate-90 c-white"> </i> 5%</span>
+                    </h2>
+                                        <div class="small">Total Open Tickets</div>
+                                        <div class="slight m-t-sm"><i class="fa fa-clock-o"> </i> Updated : <span class="c-white timeNow"></span> </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-xs-6 totalclosedticketspanel">
+                                <div class="panel panel-filled">
+                                    <div class="panel-body">
+                                        <h2 class="m-b-none">
+                        <span id="closedtickets"></span> <span class="slight"><i class="fa fa-play fa-rotate-270 text-warning"> </i> +56%</span>
+                    </h2>
+                                        <div class="small">Total Closed</div>
+                                        <div class="slight m-t-sm"><i class="fa fa-clock-o"> </i> Updated : <span class="c-white timeNow"></span> </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-xs-6">
+                                <div class="panel panel-filled">
+                                    <div class="panel-body">
+                                        <h2 class="m-b-none">
+                        34<span class="slight"><i class="fa fa-play fa-rotate-270 text-warning"> </i> +18%</span>
+                    </h2>
+                                        <div class="small">Bounce Rate</div>
+                                        <div class="slight m-t-sm"><i class="fa fa-clock-o"> </i> Updated : <span class="c-white timeNow"></span> </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 clientpanel">
+                                <div class="panel">
+                                    <div class="panel-body">
+                                        <div class="table-responsive">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>Active</th>
+                                                        <th>Closed</th>
+                                                        <th>Over Due</th>
+                                                        <th>Manager</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="clientdata">
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-xs-12 staffpanel">
+                        <div class="panel panel-filled">
+                            <div class="panel-body">
+                                <p>
+                                    It is a long established fact that a reader will be distracted by the readable content of
+                                </p>
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                Machine number
+                                            </th>
+                                            <th>
+                                                Usage
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="member">
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- End main content-->
+
+    </div>
+    <!-- End wrapper-->
+
+
+    <script>
+        var blink = function() {
+            if ($('#blinker').hasClass("red")) {
+                $('#blinker').removeClass("red");
+            } else {
+                $('#blinker').addClass("red");
+            }
+        };
+
+        $(document).ready(function() {
+            setInterval(blink, 1000);
+        });
+    </script>
+
+</body>
+
+</html>
